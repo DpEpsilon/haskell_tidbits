@@ -1,6 +1,6 @@
-Lambda Calculus
+Haskell tidbits
 ===============
 
-Toy lambda calculus interpreter that teaches me how to write Haskell.
+Here you will find:
 
-So far it parses but doesn't beta-reduce
+- A lambda calculus interpreter
