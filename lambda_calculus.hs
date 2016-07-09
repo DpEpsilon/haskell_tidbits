@@ -1,4 +1,5 @@
 import Data.Char
+import Data.List
 data Token = VariableToken [Char]
            | AbstractionToken [Char] Token
            | ApplicationToken Token Token
@@ -87,3 +88,23 @@ parseProgram xs =
                      then Just t
                      else Nothing
       Nothing -> Nothing
+
+convertProgram :: Token -> [[Char]] -> Maybe Term
+
+convertProgram (VariableToken v) context =
+    case elemIndex v context of
+      Just i -> Just (Variable i)
+      Nothing -> Nothing
+convertProgram (AbstractionToken v token) context =
+    case convertProgram token (v:context) of
+      Just t -> Just (Abstraction t)
+      Nothing -> Nothing
+convertProgram (ApplicationToken t1 t2) context =
+    case (convertProgram t1 context, convertProgram t2 context) of
+      (Nothing, _) -> Nothing
+      (_, Nothing) -> Nothing
+      (Just n1, Just n2) -> Just (Application n1 n2)
+
+convertProgramMaybe :: Maybe Token -> Maybe Term
+convertProgramMaybe Nothing = Nothing
+convertProgramMaybe (Just t) = (convertProgram t [])
