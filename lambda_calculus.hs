@@ -10,12 +10,17 @@ data Term = Variable Int
           | Application Term Term
             deriving (Show, Eq)
 
+parseVariable :: [Char] -> Maybe (Token, [Char])
+parseAbstraction :: [Char] -> Maybe (Token, [Char])
+parseApplication :: [Char] -> Maybe (Token, [Char])
+parseTerm :: [Char] -> Maybe (Token, [Char])
+
+parseAbstractionWithVar :: ([Char], [Char]) -> Maybe (Token, [Char])
+
 parseRestOfVariable []   = ([], [])
 parseRestOfVariable (x:xs) = if (isAlphaNum x || x == '_')
                              then (x:(fst (parseRestOfVariable xs)), snd (parseRestOfVariable xs))
                              else ([], x:xs)
-
-parseVariable :: [Char] -> Maybe (Token, [Char])
 
 parseVariable [] = Nothing
 parseVariable ('\n':xs) = parseVariable xs
@@ -23,8 +28,6 @@ parseVariable (' ':xs) = parseVariable xs
 parseVariable (x:xs) = if (isAlpha x || x == '_')
                        then Just (VariableToken (x:fst (parseRestOfVariable xs)), snd (parseRestOfVariable xs))
                        else Nothing
-
-parseAbstractionWithVar :: ([Char], [Char]) -> Maybe (Token, [Char])
 
 parseAbstractionWithVar (var, '.':xs) =
     case parseTerm xs of
@@ -35,20 +38,12 @@ parseAbstractionWithVar ([], _) = Nothing
 parseAbstractionWithVar (_, []) = Nothing
 parseAbstractionWithVar (_, _)  = Nothing
 
-skipWhitespace (' ':xs)  = skipWhitespace xs
-skipWhitespace ('\n':xs) = skipWhitespace xs
-skipWhitespace xs        = xs
-
-parseAbstraction :: [Char] -> Maybe (Token, [Char])
-
 parseAbstraction [] = Nothing
 parseAbstraction (' ':xs) = parseAbstraction xs
 parseAbstraction ('\n':xs) = parseAbstraction xs
 parseAbstraction (x:xs) = if x == '\\'
                           then parseAbstractionWithVar (parseRestOfVariable (skipWhitespace xs))
                           else Nothing
-
-parseApplication :: [Char] -> Maybe (Token, [Char])
 
 parseApplication ('(':xs) = do
   (t1, r1) <- parseTerm xs
@@ -61,8 +56,6 @@ parseApplication xs = do
   (t1, r1) <- parseVariable xs
   (t2, r2) <- parseTerm r1
   Just (ApplicationToken t1 t2, r2)
-
-parseTerm :: [Char] -> Maybe (Token, [Char])
 
 parseTerm []        = Nothing
 parseTerm (' ':xs)  = parseTerm xs
@@ -108,3 +101,7 @@ convertProgram (ApplicationToken t1 t2) context =
 convertProgramMaybe :: Maybe Token -> Maybe Term
 convertProgramMaybe Nothing = Nothing
 convertProgramMaybe (Just t) = (convertProgram t [])
+
+skipWhitespace (' ':xs)  = skipWhitespace xs
+skipWhitespace ('\n':xs) = skipWhitespace xs
+skipWhitespace xs        = xs
