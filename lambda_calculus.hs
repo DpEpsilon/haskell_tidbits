@@ -53,7 +53,7 @@ parseApplication ('(':xs) = do
   (t1, r1) <- parseTerm xs
   (t2, r2) <- parseTerm r1
   if head (skipWhitespace r2) == ')'
-  then Just (ApplicationToken t1 t2, r2)
+  then Just (ApplicationToken t1 t2, tail (skipWhitespace r2))
   else Nothing
 
 parseApplication xs = do
@@ -69,7 +69,7 @@ parseTerm ('\n':xs) = parseTerm xs
 parseTerm ('(':xs)  =
     case parseTerm xs of
       Just (t, r) -> if head (skipWhitespace r) == ')'
-                     then Just (t, r) else Nothing
+                     then Just (t, tail (skipWhitespace r)) else Nothing
       Nothing -> Nothing
 
 parseTerm xs =
